@@ -18,10 +18,7 @@ export type ProductFormState = {
   }
 }
 
-export async function upsertProduct(
-  prevState: ProductFormState,
-  formData: FormData
-): Promise<ProductFormState> {
+export async function upsertProduct(formData: FormData): Promise<ProductFormState> {
   await requireAdmin()
 
   try {
@@ -81,7 +78,8 @@ export async function upsertProduct(
 
     return {
       success: true,
-      message: "Producto guardado correctamente",
+      message: "Producto actualizado",
+      errors: {}
     }
   } catch (err) {
     console.error("upsertProduct error:", err)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState, startTransition } from "react"
+import { useState, useTransition } from "react"
 import { upsertProduct } from "@/app/admin/products/actions"
 import { supabaseBrowser } from "@/lib/supabase-browser"
 import type { ProductFormState } from "@/app/admin/products/[id]/edit/types"
@@ -20,10 +20,8 @@ type Product = {
 }
 
 export default function ProductForm({ product }: { product?: Product }) {
-  const [state, formAction] = useActionState<ProductFormState, FormData>(
-    upsertProduct,
-    initialState
-  )
+  const [state, setState] = useState<ProductFormState>(initialState)
+  const [isPending, startTransition] = useTransition()
 
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(
@@ -31,67 +29,67 @@ export default function ProductForm({ product }: { product?: Product }) {
   )
 
   async function uploadImage(file: File) {
-  console.log("SUPABASE ENV URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log(
-    "SUPABASE ENV ANON:",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20)
-  )
+    console.log("SUPABASE ENV URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log(
+      "SUPABASE ENV ANON:",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20)
+    )
 
-  const fileExt = file.name.split(".").pop()
-  const fileName = `products/${crypto.randomUUID()}.${fileExt}`
+    const fileExt = file.name.split(".").pop()
+    const fileName = `products/${crypto.randomUUID()}.${fileExt}`
 
-  const { data, error } = await supabaseBrowser.storage
-    .from("Madeline_Images") 
-    .upload(fileName, file, {
-      upsert: true,
-      contentType: file.type,
-    })
+    const { data, error } = await supabaseBrowser.storage
+      .from("Madeline_Images")
+      .upload(fileName, file, {
+        upsert: true,
+        contentType: file.type,
+      })
 
-  console.log("UPLOAD DATA:", data)
-  console.log("UPLOAD ERROR:", error)
+    console.log("UPLOAD DATA:", data)
+    console.log("UPLOAD ERROR:", error)
 
-  if (error) throw error
+    if (error) throw error
 
-  const { data: publicData } = supabaseBrowser.storage
-    .from("Madeline_Images") 
-    .getPublicUrl(fileName)
+    const { data: publicData } = supabaseBrowser.storage
+      .from("Madeline_Images")
+      .getPublicUrl(fileName)
 
-  console.log("PUBLIC DATA:", publicData)
+    console.log("PUBLIC DATA:", publicData)
 
-  return publicData.publicUrl
-}
+    return publicData.publicUrl
+  }
 
   async function onSubmit(formData: FormData) {
-  try {
-    setUploading(true)
+    try {
+      setUploading(true)
 
-    const file = formData.get("image") as File | null
+      const file = formData.get("image") as File | null
 
-    if (file && file.size > 0) {
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        alert("La imagen no puede ser mayor a 5MB")
-        setUploading(false)
-        return
+      if (file && file.size > 0) {
+        const maxSize = 5 * 1024 * 1024 // 5MB
+        if (file.size > maxSize) {
+          alert("La imagen no puede ser mayor a 5MB")
+          setUploading(false)
+          return
+        }
+
+        const imageUrl = await uploadImage(file)
+
+        formData.set("imageUrl", imageUrl)
+        formData.delete("image")
       }
 
-      const imageUrl = await uploadImage(file)
-
-      formData.set("imageUrl", imageUrl)
-      formData.delete("image")
+      startTransition(async () => {
+        const result = await upsertProduct(formData)
+        setState(result)
+      })
+    } catch (err) {
+      console.error("Upload error:", err)
+      alert("Error subiendo imagen")
+    } finally {
+      setUploading(false)
     }
-
-    startTransition(() => {
-      formAction(formData)
-    })
-  } catch (err) {
-    console.error("Upload error:", err)
-    alert("Error subiendo imagen")
-  } finally {
-    setUploading(false)
   }
-}
-
 
   return (
     <form action={onSubmit} className="space-y-3 border p-4 rounded">
@@ -138,18 +136,21 @@ export default function ProductForm({ product }: { product?: Product }) {
           className="h-32 w-32 object-cover rounded border"
         />
       )}
+
       <p>description</p>
       <input
         name="description"
         defaultValue={product?.description || ""}
         placeholder="Descripción"
       />
+
       <p>notes</p>
       <input
         name="notes"
         defaultValue={product?.notes || ""}
         placeholder="Notas"
       />
+
       <p>size</p>
       <input
         name="sizeMl"
@@ -160,6 +161,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       {state?.errors?.sizeMl && (
         <p className="text-red-600 text-sm">{state.errors.sizeMl[0]}</p>
       )}
+
       <p>price</p>
       <input
         name="price"
@@ -171,6 +173,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       {state?.errors?.price && (
         <p className="text-red-600 text-sm">{state.errors.price[0]}</p>
       )}
+
       <p>stock</p>
       <input
         name="stock"
@@ -193,7 +196,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       )}
 
       <button
-        disabled={uploading}
+        disabled={uploading || isPending}
         className="bg-black text-white px-4 py-2 disabled:opacity-50"
       >
         {uploading
