@@ -6,8 +6,11 @@ import Header from "@/components/Header"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Madeline",
-  description: "Un perfume mil memorias",
+  title: {
+    default: 'Madeline Scent',
+    template: '%s | Madeline Scent',
+  },
+  description: 'Un perfume mil memorias',
 }
 
 export default function RootLayout({
