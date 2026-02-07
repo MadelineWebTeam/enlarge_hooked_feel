@@ -7,7 +7,6 @@ import { prisma } from "@/lib/prisma"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -33,18 +32,14 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
-        if (!user || !user.password) {
-          return null
-        }
+        if (!user || !user.password) return null
 
         const isValid = await bcrypt.compare(
           credentials.password,
           user.password
         )
 
-        if (!isValid) {
-          return null
-        }
+        if (!isValid) return null
 
         return {
           id: user.id,
@@ -62,14 +57,15 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // Si es primer login
       if (user) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email! },
         })
-      token.role = dbUser?.role ?? "USER"
-      token.id = dbUser?.id
+
+        token.id = dbUser?.id
+        token.role = dbUser?.role ?? "USER"
       }
+
       return token
     },
 
@@ -87,7 +83,7 @@ export async function requireAdmin() {
   const session = await getServerSession(authOptions)
 
   if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/") // Si no es admin, lo saca de la página
+    redirect("/")
   }
 
   return session
