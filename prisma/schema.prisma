@@ -8,23 +8,28 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  role      Role      @default(USER)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  password  String?
-  accounts  Account[]
-  sessions  Session[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
 }
+
 model Order {
   id             Int         @id @default(autoincrement())
   email          String?
   status         OrderStatus @default(PENDING)
 
   subtotal       Decimal
-  platformFee    Decimal?    // para tu % futuro (2–5%)
+  platformFee    Decimal?
   total          Decimal
 
   stripeSessionId String?    @unique
@@ -41,7 +46,7 @@ model OrderItem {
   orderId   Int
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  productId Int?    // nullable por si borras productos después
+  productId Int?    
   name      String
   price     Decimal
   quantity  Int
