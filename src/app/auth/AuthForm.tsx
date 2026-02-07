@@ -123,13 +123,11 @@ export default function AuthForm() {
       )}
 
       <hr />
-
-      <button
-        onClick={() => signIn("github")}
-        className="w-full border p-2"
-      >
-        Continuar con GitHub
-      </button>
+      <button 
+        onClick={() => signIn("github", { callbackUrl: "/" } )} 
+        className="w-full border p-2">
+            Continuar con GitHub
+        </button>
     </div>
   )
 }
