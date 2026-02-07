@@ -51,7 +51,7 @@ export default async function Header() {
             </div>
           ) : (
             <Link
-              href="/api/auth/signin"
+              href="/auth"
               className="text-sm font-medium text-zinc-700 hover:underline"
             >
               Iniciar sesión
