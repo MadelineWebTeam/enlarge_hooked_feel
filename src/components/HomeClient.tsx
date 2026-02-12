@@ -1,12 +1,16 @@
 "use client"
 
+import Image from "next/image"
 import { useCartStore } from "@/store/cartStore"
+import HomeCarousel from "@/components/HomeCarousel"
 import type { ProductDTO } from "@/types/product"
-
 
 type Props = {
   products: ProductDTO[]
 }
+
+
+
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", {
@@ -18,16 +22,20 @@ export default function HomeClient({ products }: Props) {
   const addItem = useCartStore((state) => state.addItem)
 
   const handleAddToCart = (product: ProductDTO) => {
-  addItem(product)
-}
+    addItem(product)
+  }
 
+  const featured = products.slice(0, 5).map((p) => ({
+    id: p.id,
+    imageUrl: p.imageUrl || "/placeholder.jpg",
+    title: p.name,
+  }))
 
   return (
     <div className="min-h-screen bg-[#E0C89A] font-sans text-[#2B2219]">
-
-      {/* CONTENIDO PRINCIPAL */}
       <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
-        {/* 1) SECCIÓN CARRUSEL / NOVEDADES (placeholder) */}
+
+        {/* NOVEDADES */}
         <section className="rounded-3xl bg-[#FDF9F2] p-5 shadow-[0_12px_32px_rgba(58,33,20,0.15)] sm:p-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2 sm:max-w-md">
@@ -38,47 +46,31 @@ export default function HomeClient({ products }: Props) {
                 Descubre las fragancias destacadas de Madeline
               </h1>
               <p className="text-sm leading-relaxed text-[#5B4A36]">
-                Aquí podrás mostrar un carrusel con los lanzamientos más
-                recientes, colecciones especiales o promociones. Por ahora es
-                solo un espacio de diseño listo para conectar imágenes reales.
+                Descubre nuestras fragancias más recientes y colecciones especiales.
               </p>
             </div>
 
-            {/* Placeholder visual del carrusel */}
-            <div className="flex h-40 w-full items-center justify-center rounded-2xl border border-[#E4D4B4] bg-linear-to-br from-[#EBD4AE] via-[#FDF9F2] to-[#E0C89A] text-xs text-[#7B6341] sm:h-44 sm:w-80">
-              Área de carrusel / imágenes de perfumes
+            <div className="w-full sm:w-80">
+               <HomeCarousel items={featured} />
             </div>
           </div>
         </section>
 
-        {/* 2) SECCIÓN SOBRE NOSOTROS */}
+        {/* SOBRE NOSOTROS */}
         <section className="grid gap-6 rounded-3xl bg-[#FDF9F2] p-5 shadow-[0_12px_32px_rgba(58,33,20,0.12)] sm:grid-cols-[1.4fr_1fr] sm:p-7">
           <div className="space-y-3">
             <h2 className="text-xl font-semibold tracking-tight">
               Sobre Madeline
             </h2>
             <p className="text-sm leading-relaxed text-[#5B4A36]">
-              Madeline nace de la idea de que cada fragancia es una memoria
-              líquida. Seleccionamos perfumes que no solo huelen bien, sino que
-              acompañan momentos importantes de la vida: encuentros, despedidas,
-              comienzos y celebraciones.
-            </p>
-            <p className="text-sm leading-relaxed text-[#5B4A36]">
-              Estamos construyendo este espacio para que puedas descubrir
-              fragancias nuevas, comparar notas olfativas y encontrar el aroma
-              que mejor cuente tu historia. Nuestro objetivo es hacer que la
-              experiencia de elegir un perfume en línea sea cálida, clara y
-              cercana.
+              Cada fragancia es una memoria líquida. Te ayudamos a encontrar el aroma que cuente tu historia.
             </p>
           </div>
 
           <div className="space-y-3 rounded-2xl border border-[#E4D4B4] bg-white p-4 text-sm text-[#5B4A36]">
             <h3 className="text-sm font-semibold">Atención personalizada</h3>
             <p className="text-xs leading-relaxed">
-              Muy pronto podrás completar tu compra directamente desde la web.
-              Mientras tanto, si tienes dudas sobre alguna fragancia, notas o
-              recomendaciones, podremos guiarte para que elijas el perfume
-              ideal.
+              Muy pronto podrás comprar directamente desde la web.
             </p>
             <button className="mt-2 inline-flex h-9 items-center justify-center rounded-full bg-[#D4B063] px-4 text-xs font-medium text-[#2B2219] transition hover:bg-[#C89A4A]">
               Contactar asesor
@@ -86,69 +78,81 @@ export default function HomeClient({ products }: Props) {
           </div>
         </section>
 
-        
-        
-        {/* CATÁLOGO */}
-        <section className="rounded-3xl bg-[#FDF9F2] p-5 shadow sm:p-7">
-          <div className="flex items-center justify-between border-b pb-4">
-            <h2 className="text-xl font-semibold">
-              Nuestro catálogo de perfumes
-            </h2>
-            <span className="text-xs text-zinc-500">
-              {products.length} perfumes
-            </span>
-          </div>
+        {/* CATÁLOGO EN HOME */}
+        <section className="space-y-6">
+          {products.length === 0 ? (
+            <p className="text-sm text-zinc-600">
+              Aún no hay perfumes cargados. Vuelve más tarde.
+            </p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product) => (
+                <article
+                  key={product.id}
+                  className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                >
+                  <div className="space-y-2">
+                    {product.imageUrl && (
+                      <div className="relative h-48 w-full overflow-hidden rounded-xl">
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      </div>
+                    )}
 
-          <div className="mt-4 divide-y">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="grid grid-cols-1 gap-3 px-4 py-3 text-sm sm:grid-cols-[2fr_1fr_1fr_1fr_1.2fr]"
-              >
-                <div>
-                  <p className="text-xs uppercase text-zinc-500">
-                    {product.brand}
-                  </p>
-                  <p className="font-semibold">{product.name}</p>
-                  {product.notes && (
-                    <p className="text-xs text-zinc-500">
-                      Notas: {product.notes}
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+                      {product.brand || "Marca"}
                     </p>
-                  )}
-                </div>
 
-                <div>{product.sizeMl} ml</div>
+                    <h2 className="text-base font-semibold leading-snug">
+                      {product.name}
+                    </h2>
 
-                <div className="font-semibold text-[#C89A4A]">
-                  {formatCurrency(Number(product.price))}
-                </div>
+                    <p className="text-xs text-zinc-600">
+                      {product.sizeMl} ml · {formatCurrency(Number(product.price))}
+                    </p>
 
-                <div>
-                  {product.stock > 0 ? (
-                    <span className="text-green-700">
-                      En stock · {product.stock}
-                    </span>
-                  ) : (
-                    <span className="text-red-600">Sin stock</span>
-                  )}
-                </div>
+                    {product.notes && (
+                      <p className="mt-2 line-clamp-3 text-xs text-zinc-500">
+                        Notas: {product.notes}
+                      </p>
+                    )}
 
-                <div className="flex gap-2">
-                  <button className="border px-3 py-1 rounded-full">
-                    Ver detalle
-                  </button>
+                    <p
+                      className={`mt-1 text-xs font-medium ${
+                        product.stock > 0
+                          ? "text-emerald-600"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {product.stock > 0
+                        ? `En stock: ${product.stock}`
+                        : "Sin stock"}
+                    </p>
+                  </div>
 
                   <button
+                    type="button"
                     disabled={product.stock <= 0}
                     onClick={() => handleAddToCart(product)}
-                    className="bg-[#D4B063] px-3 py-1 rounded-full disabled:opacity-50"
+                    className={`mt-4 h-9 rounded-full text-xs font-medium transition ${
+                      product.stock > 0
+                        ? "bg-black text-white hover:bg-zinc-800"
+                        : "bg-zinc-200 text-zinc-500 cursor-not-allowed"
+                    }`}
                   >
-                    Agregar
+                    {product.stock > 0
+                      ? "Agregar al carrito"
+                      : "Sin stock"}
                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
