@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import Image from "next/image"
 import { useCartStore } from "@/store/cartStore"
 import HomeCarousel from "@/components/HomeCarousel"
@@ -9,11 +10,7 @@ type Props = {
   products: ProductDTO[]
 }
 
-
-
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("es-MX", {
+const formatCurrency = (value: number) => new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
   }).format(value)
@@ -107,10 +104,11 @@ export default function HomeClient({ products }: Props) {
                     <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
                       {product.brand || "Marca"}
                     </p>
-
-                    <h2 className="text-base font-semibold leading-snug">
-                      {product.name}
-                    </h2>
+                    <Link href={`/products/${product.id}`} className="block">
+                      <h2 className="text-base font-semibold leading-snug">
+                        {product.name}
+                      </h2>
+                    </Link>
 
                     <p className="text-xs text-zinc-600">
                       {product.sizeMl} ml · {formatCurrency(Number(product.price))}

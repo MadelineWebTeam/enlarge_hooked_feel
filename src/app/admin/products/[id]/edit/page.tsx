@@ -1,3 +1,5 @@
+"use client"
+
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/requireAdmin"
 import ProductForm from "@/components/ProductForm"

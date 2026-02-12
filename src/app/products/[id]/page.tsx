@@ -1,3 +1,5 @@
+"use client"
+
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Image from "next/image"
@@ -9,6 +11,7 @@ type Props = {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
+  
   const productId = Number(params.id)
 
   if (isNaN(productId)) {
