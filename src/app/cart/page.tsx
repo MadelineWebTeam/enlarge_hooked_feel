@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import BuyButton from "@/components/BuyButton"
 import { useCartStore } from "@/store/cartStore"
 
 export default function CartPage() {
@@ -123,14 +124,7 @@ export default function CartPage() {
             </span>
           </div>
 
-          {/* En el futuro: envío, impuestos, fee plataforma */}
-
-          <button
-            onClick={() => alert("Aquí irá Stripe Checkout 👀")}
-            className="mt-4 w-full rounded-full bg-black py-2 text-sm text-white hover:bg-zinc-800"
-          >
-            Proceder al pago
-          </button>
+          <BuyButton product={items} />
 
           <button
             onClick={clearCart}

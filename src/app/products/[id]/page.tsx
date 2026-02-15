@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import BuyButton from "@/components/BuyButton"
 import Image from "next/image"
 
 type Props = {
@@ -92,6 +93,9 @@ export default async function ProductDetailPage({ params }: Props) {
             >
               Agregar al carrito
             </button>
+
+            <BuyButton product={product} />
+
           </div>
         </div>
       </div>
