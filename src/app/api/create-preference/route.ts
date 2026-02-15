@@ -14,13 +14,14 @@ export async function POST(req: Request) {
     const response = await preference.create({
       body: {
         items: [
-          {
-            title: body.title,
-            quantity: 1,
-            unit_price: Number(body.price),
-            currency_id: "MXN",
-          },
-        ],
+            {
+                id: body.id,
+                title: body.title,
+                quantity: 1,
+                unit_price: Number(body.price),
+                currency_id: "MXN",
+            },
+            ],
         back_urls: {
           success: "http://localhost:3000/success",
           failure: "http://localhost:3000/failure",

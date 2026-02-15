@@ -6,6 +6,7 @@ export default function BuyButton({ product }: { product: any }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        id: product.id,
         title: product.name,
         price: product.price,
       }),
