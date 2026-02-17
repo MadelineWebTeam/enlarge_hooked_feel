@@ -124,7 +124,7 @@ export default function CartPage() {
             </span>
           </div>
 
-          <BuyButton product={items} />
+          <BuyButton items={items} />
 
           <button
             onClick={clearCart}
