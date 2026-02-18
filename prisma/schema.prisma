@@ -22,18 +22,32 @@ model User {
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
-  email           String?
-  status          OrderStatus @default(PENDING)
-  subtotal        Decimal
-  platformFee     Decimal?
-  total           Decimal
+  id        Int     @id @default(autoincrement())
+  status    OrderStatus @default(PENDING)
+
+  fullName  String
+  email     String
+  phone     String?
+
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String
+
+  subtotal  Decimal
+  total     Decimal
+
   mercadoPagoPreferenceId String?
   mercadoPagoPaymentId    String? @unique
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  items           OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     OrderItem[]
 }
+
 
 model OrderItem {
   id        Int      @id @default(autoincrement())

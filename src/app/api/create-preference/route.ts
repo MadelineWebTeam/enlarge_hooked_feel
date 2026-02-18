@@ -104,11 +104,12 @@ export async function POST(req: Request) {
         total: subtotal,
         status: "PENDING",
         items: {
-          create: items.map((item: any) => ({
-            productId: Number(item.id),
-            quantity: item.quantity,
-            price: item.price,
-          })),
+        create: validatedItems.map((item, index) => ({
+          name: item.title, // 👈 agregado
+          productId: Number(items[index].id),
+          quantity: items[index].quantity,
+          price: item.unit_price,
+        })),
         },
       },
     })
@@ -143,3 +144,6 @@ export async function POST(req: Request) {
     console.error(error)
     return NextResponse.json(
       { error: "Error creando preferencia" }
+    )
+  }
+}
