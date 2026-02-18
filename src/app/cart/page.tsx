@@ -124,7 +124,14 @@ export default function CartPage() {
             </span>
           </div>
 
-          <BuyButton items={items} />
+          <BuyButton
+            items={items.map((item) => ({
+              id: item.productId,
+              name: item.name,
+              price: Number(item.price),
+              quantity: item.quantity,
+            }))}
+          />
 
           <button
             onClick={clearCart}
