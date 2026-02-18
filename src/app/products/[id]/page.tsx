@@ -94,8 +94,17 @@ export default async function ProductDetailPage({ params }: Props) {
               Agregar al carrito
             </button>
 
-            <BuyButton product={product} />
-
+            <BuyButton
+              items={[
+                {
+                  id: product.id,
+                  name: product.name,
+                  price: Number(product.price), // Prisma Decimal → number
+                  quantity: 1,
+                },
+              ]}
+            />
+            
           </div>
         </div>
       </div>
