@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import BuyButton from "@/components/BuyButton"
 import { useCartStore } from "@/store/cartStore"
+import { useState } from "react"
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items)
@@ -11,6 +12,29 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const getSubtotal = useCartStore((state) => state.getSubtotal)
   const clearCart = useCartStore((state) => state.clearCart)
+
+  const isFormValid = () => {
+    return (
+      customer.fullName &&
+      customer.email &&
+      customer.addressLine1 &&
+      customer.city &&
+      customer.state &&
+      customer.postalCode
+    )
+  }
+
+  const [customer, setCustomer] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "México",
+  })
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("es-MX", {
@@ -124,6 +148,97 @@ export default function CartPage() {
             </span>
           </div>
 
+          <div className="space-y-4 mb-6">
+            <h2 className="text-lg font-semibold">Datos de envío</h2>
+
+            <input
+              className="w-full border rounded px-3 py-2"
+              placeholder="Nombre completo"
+              value={customer.fullName}
+              onChange={(e) =>
+                setCustomer({ ...customer, fullName: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full border rounded px-3 py-2"
+              placeholder="Correo electrónico"
+              type="email"
+              value={customer.email}
+              onChange={(e) =>
+                setCustomer({ ...customer, email: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full border rounded px-3 py-2"
+              placeholder="Número de teléfono"
+              value={customer.phone}
+              onChange={(e) =>
+                setCustomer({ ...customer, phone: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full border rounded px-3 py-2"
+              placeholder="Dirección (calle y número)"
+              value={customer.addressLine1}
+              onChange={(e) =>
+                setCustomer({ ...customer, addressLine1: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full border rounded px-3 py-2"
+              placeholder="Departamento, interior (opcional)"
+              value={customer.addressLine2}
+              onChange={(e) =>
+                setCustomer({ ...customer, addressLine2: e.target.value })
+              }
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                className="border rounded px-3 py-2"
+                placeholder="Ciudad"
+                value={customer.city}
+                onChange={(e) =>
+                  setCustomer({ ...customer, city: e.target.value })
+                }
+              />
+
+              <input
+                className="border rounded px-3 py-2"
+                placeholder="Estado"
+                value={customer.state}
+                onChange={(e) =>
+                  setCustomer({ ...customer, state: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                className="border rounded px-3 py-2"
+                placeholder="Código postal"
+                value={customer.postalCode}
+                onChange={(e) =>
+                  setCustomer({ ...customer, postalCode: e.target.value })
+                }
+              />
+
+              <input
+                className="border rounded px-3 py-2"
+                placeholder="País"
+                value={customer.country}
+                onChange={(e) =>
+                  setCustomer({ ...customer, country: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+
           <BuyButton
             items={items.map((item) => ({
               id: item.productId,
@@ -131,6 +246,8 @@ export default function CartPage() {
               price: Number(item.price),
               quantity: item.quantity,
             }))}
+            customer={customer}
+            disabled={!isFormValid()}
           />
 
           <button

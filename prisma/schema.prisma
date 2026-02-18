@@ -24,21 +24,38 @@ model User {
 }
 
 model Order {
-  id             Int         @id @default(autoincrement())
-  email          String?
-  status         OrderStatus @default(PENDING)
+  id                        Int         @id @default(autoincrement())
 
-  subtotal       Decimal
-  platformFee    Decimal?
-  total          Decimal
+  // Datos comprador
+  email                     String
+  fullName                  String
+  phone                     String?
 
-  stripeSessionId String?    @unique
+  // Dirección
+  addressLine1              String
+  addressLine2              String?
+  suburb                    String
+  city                      String
+  state                     String
+  postalCode                String
+  country                   String
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  status                    OrderStatus @default(PENDING)
 
-  items          OrderItem[]
+  subtotal                  Decimal
+  platformFee               Decimal?
+  total                     Decimal
+
+  mercadoPagoPreferenceId   String?
+  mercadoPagoPaymentId      String? @unique
+
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+
+  items                     OrderItem[]
 }
+
+
 
 model OrderItem {
   id         Int     @id @default(autoincrement())

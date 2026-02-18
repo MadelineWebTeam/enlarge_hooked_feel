@@ -1,19 +1,29 @@
 "use client"
 
-export default function BuyButton({ items }: { items: any[] }) {
+export default function BuyButton({
+  items,
+  customer,
+  disabled,
+}: {
+  items: any[]
+  customer: any
+  disabled?: boolean
+}) {
   const handleCheckout = async () => {
-    console.log("CART ITEMS:", items)
+    if (disabled) {
+      alert("Completa los datos de envío")
+      return
+    }
 
     const res = await fetch("/api/create-preference", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, customer }),
     })
 
     const data = await res.json()
 
     if (!res.ok) {
-      console.error("Error:", data)
       alert("Error al crear la preferencia")
       return
     }
@@ -24,9 +34,10 @@ export default function BuyButton({ items }: { items: any[] }) {
   return (
     <button
       onClick={handleCheckout}
-      className="bg-black text-white px-6 py-3 rounded"
+      disabled={disabled}
+      className="bg-black text-white px-6 py-3 rounded disabled:opacity-50"
     >
-      Pagar carrito
+      Finalizar compra
     </button>
   )
 }
