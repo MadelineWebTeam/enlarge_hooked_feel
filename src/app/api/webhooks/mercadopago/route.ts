@@ -7,6 +7,7 @@ const client = new MercadoPagoConfig({
 })
 
 export async function POST(req: Request) {
+  console.log("🔥 WEBHOOK RECIBIDO 🔥")
   try {
     const body = await req.json()
 
