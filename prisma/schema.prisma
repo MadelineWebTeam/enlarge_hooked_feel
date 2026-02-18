@@ -11,74 +11,41 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
   role          Role      @default(USER)
-
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
+  password      String?
+  emailVerified DateTime?
+  image         String?
   accounts      Account[]
   sessions      Session[]
 }
 
 model Order {
-  id                        Int         @id @default(autoincrement())
-
-  // Datos comprador
-  email                     String
-  fullName                  String
-  phone                     String?
-
-  // Dirección
-  addressLine1              String
-  addressLine2              String?
-  suburb                    String
-  city                      String
-  state                     String
-  postalCode                String
-  country                   String
-
-  status                    OrderStatus @default(PENDING)
-
-  subtotal                  Decimal
-  platformFee               Decimal?
-  total                     Decimal
-
-  mercadoPagoPreferenceId   String?
-  mercadoPagoPaymentId      String? @unique
-
-  createdAt                 DateTime    @default(now())
-  updatedAt                 DateTime    @updatedAt
-
-  items                     OrderItem[]
+  id              Int         @id @default(autoincrement())
+  email           String?
+  status          OrderStatus @default(PENDING)
+  subtotal        Decimal
+  platformFee     Decimal?
+  total           Decimal
+  mercadoPagoPreferenceId String?
+  mercadoPagoPaymentId    String? @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
 }
 
-
-
 model OrderItem {
-  id         Int     @id @default(autoincrement())
-
+  id        Int      @id @default(autoincrement())
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId Int?    
+  productId Int?
   name      String
   price     Decimal
   quantity  Int
   imageUrl  String?
-
   createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
-
-enum OrderStatus {
-  PENDING
-  PAID
-  CANCELLED
-  REFUNDED
-}
-
 
 model Account {
   id                String  @id @default(cuid())
@@ -126,6 +93,13 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   imageUrl    String?
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
 }
 
 enum Role {
