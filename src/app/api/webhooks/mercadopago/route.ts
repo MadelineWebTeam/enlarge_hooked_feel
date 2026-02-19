@@ -8,55 +8,47 @@ const client = new MercadoPagoConfig({
 
 export async function POST(req: Request) {
   console.log("🔥 WEBHOOK RECIBIDO 🔥")
+
   try {
     const body = await req.json()
+    console.log("BODY:", body)
 
-    // MercadoPago manda distintos tipos de notificaciones
-    if (body.type !== "payment") {
+    const paymentId = body.data?.id
+
+    if (!paymentId) {
       return NextResponse.json({ received: true })
     }
 
-    const paymentId = body.data.id
-
-    if (!paymentId) {
-      return NextResponse.json({ error: "No payment ID" }, { status: 400 })
-    }
-
-    // 🔥 1. Obtener datos reales del pago
     const payment = await new Payment(client).get({
       id: paymentId,
     })
 
-    if (!payment) {
-      return NextResponse.json({ error: "Payment not found" }, { status: 404 })
-    }
+    console.log("PAYMENT STATUS:", payment.status)
 
-    const status = payment.status
     const externalReference = payment.external_reference
 
     if (!externalReference) {
-      return NextResponse.json({ error: "No external reference" }, { status: 400 })
+      console.log("No external reference")
+      return NextResponse.json({ received: true })
     }
 
     const orderId = Number(externalReference)
 
-    // 🔥 2. Si el pago fue aprobado
-    if (status === "approved") {
+    if (payment.status === "approved") {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: { items: true },
       })
 
       if (!order) {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        console.log("Order not found:", orderId)
+        return NextResponse.json({ received: true })
       }
 
-      // Evitar procesarlo dos veces
       if (order.status === "PAID") {
         return NextResponse.json({ received: true })
       }
 
-      // 🔥 3. Reducir stock
       for (const item of order.items) {
         await prisma.product.update({
           where: { id: item.productId },
@@ -68,7 +60,6 @@ export async function POST(req: Request) {
         })
       }
 
-      // 🔥 4. Actualizar orden
       await prisma.order.update({
         where: { id: orderId },
         data: {
@@ -76,6 +67,8 @@ export async function POST(req: Request) {
           mercadoPagoPaymentId: String(paymentId),
         },
       })
+
+      console.log("✅ ORDER UPDATED TO PAID:", orderId)
     }
 
     return NextResponse.json({ received: true })
