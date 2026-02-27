@@ -4,10 +4,10 @@ export type ProductDTO = {
   name: string
   description: string | null
   notes: string | null
-  sizeMl: number
-  price: string
-  stock: number
   imageUrl?: string | null
+  variants: [
+    { id: number, sizeMl: number, price: string, stock: number }
+  ]
 }
 
 export type ProductFormState = {

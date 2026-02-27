@@ -50,43 +50,47 @@ export async function POST(req: Request) {
     const validatedItems = []
 
     for (const item of items) {
-      if (!item.id || item.quantity <= 0) {
+      if (!item.productId || !item.variantId || item.quantity <= 0) {
         return NextResponse.json(
           { error: "Item inválido" },
           { status: 400 }
         )
       }
 
-      const product = await prisma.product.findUnique({
-        where: { id: Number(item.id) },
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: Number(item.variantId) },
+        include: {
+          product: true
+        }
       })
 
-      if (!product) {
+      if (!variant) {
         return NextResponse.json(
-          { error: "Producto no encontrado" },
+          { error: "Variante no encontrada" },
           { status: 400 }
         )
       }
 
-      if (product.stock < item.quantity) {
+      if (variant.stock < item.quantity) {
         return NextResponse.json(
-          { error: `Stock insuficiente para ${product.name}` },
+          { error: `Stock insuficiente para ${variant.product.name} ${variant.sizeMl}ml` },
           { status: 400 }
         )
       }
 
-      const price = Number(product.price)
+      const price = Number(variant.price)
 
       subtotal += price * item.quantity
 
       validatedItems.push({
-        id: String(product.id),
-        title: product.name,
+        id: String(variant.id),
+        title: `${variant.product.name} ${variant.sizeMl}ml`,
         quantity: item.quantity,
         unit_price: price,
         currency_id: "MXN",
       })
-    }
+}
+
 
     // 🔥 4. Crear Order en DB
     const order = await prisma.order.create({
@@ -104,12 +108,13 @@ export async function POST(req: Request) {
         total: subtotal,
         status: "PENDING",
         items: {
-        create: validatedItems.map((item, index) => ({
-          name: item.title, // 👈 agregado
-          productId: Number(items[index].id),
-          quantity: items[index].quantity,
-          price: item.unit_price,
-        })),
+          create: validatedItems.map((item, index) => ({
+            name: item.title,
+            productId: Number(items[index].productId),
+            variantId: Number(items[index].variantId),
+            quantity: items[index].quantity,
+            price: item.unit_price,
+          })),
         },
       },
     })
@@ -122,9 +127,9 @@ export async function POST(req: Request) {
         items: validatedItems,
         external_reference: String(order.id), // 🔥 CLAVE
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-          failure: `${process.env.NEXT_PUBLIC_BASE_URL}/failure`,
-          pending: `${process.env.NEXT_PUBLIC_BASE_URL}/pending`,
+          success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
+          failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
+          pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`,
         },
       },
     })

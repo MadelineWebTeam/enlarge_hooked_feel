@@ -35,41 +35,68 @@ export async function POST(req: Request) {
     const orderId = Number(externalReference)
 
     if (payment.status === "approved") {
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: { items: true },
-      })
+      await prisma.$transaction(async (tx) => {
 
-      if (!order) {
-        console.log("Order not found:", orderId)
-        return NextResponse.json({ received: true })
-      }
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+          include: { items: true },
+        })
 
-      if (order.status === "PAID") {
-        return NextResponse.json({ received: true })
-      }
+        if (!order) {
+          console.log("Order not found:", orderId)
+          return
+        }
 
-      for (const item of order.items) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity,
+        // 🔒 Idempotencia → si ya está pagada, salir
+        if (order.status === "PAID") {
+          console.log("Order already processed:", orderId)
+          return
+        }
+
+        // 🔒 Validar stock antes de descontar
+        for (const item of order.items) {
+          if (!item.variantId) continue
+
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId }
+          })
+
+          if (!variant) {
+            throw new Error("Variant not found")
+          }
+
+          if (variant.stock < item.quantity) {
+            throw new Error(
+              `Stock insuficiente para variante ${variant.id}`
+            )
+          }
+        }
+
+        // 🔥 Descontar stock
+        for (const item of order.items) {
+          if (!item.variantId) continue
+
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
             },
+          })
+        }
+
+        // 🔥 Marcar orden como pagada
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status: "PAID",
+            mercadoPagoPaymentId: String(paymentId),
           },
         })
-      }
-
-      await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          status: "PAID",
-          mercadoPagoPaymentId: String(paymentId),
-        },
       })
-
-      console.log("✅ ORDER UPDATED TO PAID:", orderId)
     }
+
 
     return NextResponse.json({ received: true })
   } catch (error) {

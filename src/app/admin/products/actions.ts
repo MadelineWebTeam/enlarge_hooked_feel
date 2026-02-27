@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
 
+
 export type ProductFormState = {
   success?: boolean
   message?: string
@@ -31,6 +32,9 @@ export async function upsertProduct(formData: FormData): Promise<ProductFormStat
     const notes = String(formData.get("notes") || "")
     const sizeMl = Number(formData.get("sizeMl"))
     const price = Number(formData.get("price"))
+    const variantsRaw = formData.get("variants") as string
+    const variants = JSON.parse(variantsRaw)
+
     const stock = Number(formData.get("stock"))
 
     const imageUrl = String(formData.get("imageUrl") || "")
