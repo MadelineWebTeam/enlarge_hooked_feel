@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/stripe"
 import { headers } from "next/headers"
 
 export async function POST(req: Request) {
@@ -45,17 +44,4 @@ export async function POST(req: Request) {
       quantity: item.quantity,
     }
   })
-
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    mode: "payment",
-    line_items,
-    success_url: `${process.env.NEXT_PUBLIC_URL}/checkout/success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_URL}/cart`,
-    metadata: {
-      items: JSON.stringify(items), // 🔥 importante para webhook
-    },
-  })
-
-  return NextResponse.json({ url: session.url })
 }
