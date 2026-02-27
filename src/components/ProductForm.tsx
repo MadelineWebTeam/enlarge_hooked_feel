@@ -3,16 +3,12 @@
 import { useState, useTransition } from "react"
 import { upsertProduct } from "@/app/admin/products/actions"
 import { supabaseBrowser } from "@/lib/supabase-browser"
-import type { ProductFormState } from "@/app/admin/products/[id]/edit/types"
-
-const initialState: ProductFormState = {}
 
 type ProductVariant = {
   id: number
   sizeMl: number
   price: number
   stock: number
-  productId: number
 }
 
 type Product = {
@@ -26,20 +22,29 @@ type Product = {
 }
 
 export default function ProductForm({ product }: { product?: Product }) {
-  const [state, setState] = useState<ProductFormState>(initialState)
   const [isPending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
-    product?.imageUrl || null
+    product?.imageUrl ?? null
   )
 
-  // ✅ AHORA SÍ dentro del componente
   const [variants, setVariants] = useState<ProductVariant[]>(
     product?.variants?.length
       ? product.variants
-      : [{ id: 0, sizeMl: 50, price: 0, stock: 0, productId: product?.id || 0 }]
+      : [
+          {
+            id: -Date.now(), // ID temporal
+            sizeMl: 50,
+            price: 0,
+            stock: 0,
+          },
+        ]
   )
+
+  // =============================
+  // Imagen
+  // =============================
 
   async function uploadImage(file: File) {
     const fileExt = file.name.split(".").pop()
@@ -61,6 +66,10 @@ export default function ProductForm({ product }: { product?: Product }) {
     return data.publicUrl
   }
 
+  // =============================
+  // Submit
+  // =============================
+
   async function onSubmit(formData: FormData) {
     try {
       setUploading(true)
@@ -80,25 +89,40 @@ export default function ProductForm({ product }: { product?: Product }) {
         formData.delete("image")
       }
 
+      formData.set("variants", JSON.stringify(variants))
+
       startTransition(async () => {
-        formData.set("variants", JSON.stringify(variants))
-        const result = await upsertProduct(formData)
-        setState(result)
+        await upsertProduct(formData)
       })
-    } catch (err) {
-      console.error("Upload error:", err)
-      alert("Error subiendo imagen")
+    } catch (error) {
+      console.error(error)
+      alert("Error procesando el producto")
     } finally {
       setUploading(false)
     }
   }
 
+  // =============================
+  // UI
+  // =============================
+
   return (
-    <form action={onSubmit} className="space-y-3 border p-4 rounded">
+    <form action={onSubmit} className="space-y-4 border p-6 rounded-lg">
       {product && <input type="hidden" name="id" value={product.id} />}
 
-      <input name="brand" defaultValue={product?.brand} placeholder="Marca" />
-      <input name="name" defaultValue={product?.name} placeholder="Nombre" />
+      <input
+        name="brand"
+        defaultValue={product?.brand}
+        placeholder="Marca"
+        className="border p-2 w-full rounded"
+      />
+
+      <input
+        name="name"
+        defaultValue={product?.name}
+        placeholder="Nombre"
+        className="border p-2 w-full rounded"
+      />
 
       <input
         type="file"
@@ -118,22 +142,27 @@ export default function ProductForm({ product }: { product?: Product }) {
         />
       )}
 
-      <input
+      <textarea
         name="description"
-        defaultValue={product?.description || ""}
+        defaultValue={product?.description ?? ""}
         placeholder="Descripción"
+        className="border p-2 w-full rounded"
       />
 
-      <input
+      <textarea
         name="notes"
-        defaultValue={product?.notes || ""}
+        defaultValue={product?.notes ?? ""}
         placeholder="Notas"
+        className="border p-2 w-full rounded"
       />
 
-      <p className="font-semibold mt-4">Tamaños</p>
+      <h3 className="font-semibold mt-6">Tamaños disponibles</h3>
 
       {variants.map((variant, index) => (
-        <div key={index} className="border p-3 rounded space-y-2">
+        <div
+          key={variant.id}
+          className="border p-4 rounded space-y-2 bg-gray-50"
+        >
           <input
             type="number"
             placeholder="Tamaño (ml)"
@@ -143,6 +172,7 @@ export default function ProductForm({ product }: { product?: Product }) {
               updated[index].sizeMl = Number(e.target.value)
               setVariants(updated)
             }}
+            className="border p-2 w-full rounded"
           />
 
           <input
@@ -155,6 +185,7 @@ export default function ProductForm({ product }: { product?: Product }) {
               updated[index].price = Number(e.target.value)
               setVariants(updated)
             }}
+            className="border p-2 w-full rounded"
           />
 
           <input
@@ -166,6 +197,7 @@ export default function ProductForm({ product }: { product?: Product }) {
               updated[index].stock = Number(e.target.value)
               setVariants(updated)
             }}
+            className="border p-2 w-full rounded"
           />
 
           <button
@@ -185,23 +217,28 @@ export default function ProductForm({ product }: { product?: Product }) {
         onClick={() =>
           setVariants([
             ...variants,
-            { id: 0, sizeMl: 0, price: 0, stock: 0, productId: product?.id || 0 }
+            {
+              id: -Date.now(),
+              sizeMl: 0,
+              price: 0,
+              stock: 0,
+            },
           ])
         }
-        className="bg-gray-200 px-3 py-1 rounded"
+        className="bg-gray-200 px-4 py-2 rounded"
       >
         + Agregar tamaño
       </button>
 
       <button
         disabled={uploading || isPending}
-        className="bg-black text-white px-4 py-2 disabled:opacity-50"
+        className="bg-black text-white px-6 py-3 rounded disabled:opacity-50"
       >
         {uploading
           ? "Subiendo imagen..."
           : product
-          ? "Actualizar"
-          : "Crear"}
+          ? "Actualizar producto"
+          : "Crear producto"}
       </button>
     </form>
   )

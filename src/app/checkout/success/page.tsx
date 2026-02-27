@@ -1,20 +1,19 @@
 "use client"
 
 import { useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import { useCartStore } from "@/store/cartStore"
 
 export default function SuccessPage() {
   const clearCart = useCartStore(state => state.clearCart)
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const orderId = searchParams.get("external_reference")
+    clearCart()
+  }, [clearCart])
 
-    if (orderId) {
-      clearCart()
-    }
-  }, [clearCart, searchParams])
-
-  return <div>Pago confirmado 🎉</div>
+  return (
+    <div className="p-10 text-center">
+      <h1 className="text-3xl font-bold">Pago exitoso 🎉</h1>
+      <p className="mt-4">Gracias por tu compra.</p>
+    </div>
+  )
 }

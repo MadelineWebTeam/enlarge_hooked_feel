@@ -23,8 +23,6 @@ export async function POST(req: Request) {
       id: paymentId,
     })
 
-    console.log("PAYMENT STATUS:", payment.status)
-
     const externalReference = payment.external_reference
 
     if (!externalReference) {
