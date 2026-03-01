@@ -241,9 +241,7 @@ export default function CartPage() {
 
           <BuyButton
             items={items.map((item) => ({
-              id: item.productId,
-              name: item.name,
-              price: Number(item.price),
+              variantId: item.productId,
               quantity: item.quantity,
             }))}
             customer={customer}

@@ -12,7 +12,6 @@ export async function POST(req: Request) {
 
     const { items, customer } = body
 
-    // 🔒 1. Validar items
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: "Carrito vacío" },
@@ -20,7 +19,7 @@ export async function POST(req: Request) {
       )
     }
 
-    // 🔒 2. Validar cliente
+    // Customer validation
     if (
       !customer?.fullName ||
       !customer?.email ||
@@ -35,7 +34,6 @@ export async function POST(req: Request) {
       )
     }
 
-    // Validar email simple
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(customer.email)) {
       return NextResponse.json(
@@ -44,36 +42,42 @@ export async function POST(req: Request) {
       )
     }
 
-    let subtotal = 0
+    /**
+     * ===========================
+     * CART VALIDATION SAFE ZONE
+     * ===========================
+     */
 
-    // 🔒 3. Validar productos contra base de datos
-    const validatedItems = []
+    let subtotal = 0
+    const validatedItems: any[] = []
 
     for (const item of items) {
-      if (!item.productId || !item.variantId || item.quantity <= 0) {
+      if (!item.variantId || item.quantity <= 0) {
         return NextResponse.json(
           { error: "Item inválido" },
           { status: 400 }
         )
       }
 
+      // 🔥 Fetch latest variant snapshot
       const variant = await prisma.productVariant.findUnique({
         where: { id: Number(item.variantId) },
-        include: {
-          product: true
-        }
+        include: { product: true },
       })
 
       if (!variant) {
         return NextResponse.json(
-          { error: "Variante no encontrada" },
+          { error: "Producto no encontrado" },
           { status: 400 }
         )
       }
 
+      // Stock validation
       if (variant.stock < item.quantity) {
         return NextResponse.json(
-          { error: `Stock insuficiente para ${variant.product.name} ${variant.sizeMl}ml` },
+          {
+            error: `Stock insuficiente para ${variant.product.name}`,
+          },
           { status: 400 }
         )
       }
@@ -83,16 +87,20 @@ export async function POST(req: Request) {
       subtotal += price * item.quantity
 
       validatedItems.push({
-        id: String(variant.id),
         title: `${variant.product.name} ${variant.sizeMl}ml`,
         quantity: item.quantity,
         unit_price: price,
         currency_id: "MXN",
+        id: String(variant.id),
       })
-}
+    }
 
+    /**
+     * ===========================
+     * CREATE ORDER (IDEMPOTENT)
+     * ===========================
+     */
 
-    // 🔥 4. Crear Order en DB
     const order = await prisma.order.create({
       data: {
         fullName: customer.fullName,
@@ -104,29 +112,43 @@ export async function POST(req: Request) {
         state: customer.state,
         postalCode: customer.postalCode,
         country: customer.country ?? "México",
+
         subtotal,
         total: subtotal,
         status: "PENDING",
+
         items: {
-          create: validatedItems.map((item, index) => ({
+          create: validatedItems.map(item => ({
             name: item.title,
-            productId: Number(items[index].productId),
-            variantId: Number(items[index].variantId),
-            quantity: items[index].quantity,
+            variantId: Number(item.id),
+            quantity: item.quantity,
             price: item.unit_price,
           })),
         },
       },
     })
 
-    // 🔥 5. Crear preferencia MercadoPago
+    /**
+     * ===========================
+     * CREATE MERCADOPAGO PREF
+     * ===========================
+     */
+
     const preference = new Preference(client)
 
     const response = await preference.create({
       body: {
         items: validatedItems,
-        external_reference: String(order.id), 
+
+        external_reference: String(order.id),
+
+        payer: {
+          name: customer.fullName,
+          email: customer.email,
+        },
+
         auto_return: "approved",
+
         back_urls: {
           success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
           failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
@@ -135,7 +157,6 @@ export async function POST(req: Request) {
       },
     })
 
-    // Guardar preferenceId
     await prisma.order.update({
       where: { id: order.id },
       data: {
@@ -146,10 +167,13 @@ export async function POST(req: Request) {
     return NextResponse.json({
       init_point: response.init_point,
     })
+
   } catch (error) {
     console.error(error)
+
     return NextResponse.json(
-      { error: "Error creando preferencia" }
+      { error: "Checkout error" },
+      { status: 500 }
     )
   }
 }
