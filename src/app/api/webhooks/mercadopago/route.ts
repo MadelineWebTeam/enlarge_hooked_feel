@@ -11,7 +11,11 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    console.log("BODY:", body)
+
+    // 🔒 Solo procesar eventos de tipo payment
+    if (body.type !== "payment") {
+      return NextResponse.json({ received: true })
+    }
 
     const paymentId = body.data?.id
 
@@ -19,6 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true })
     }
 
+    // 🔥 Obtener pago real desde MercadoPago
     const payment = await new Payment(client).get({
       id: paymentId,
     })
@@ -32,31 +37,56 @@ export async function POST(req: Request) {
 
     const orderId = Number(externalReference)
 
-    if (payment.status === "approved") {
-      await prisma.$transaction(async (tx) => {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    })
 
-        const order = await tx.order.findUnique({
+    if (!order) {
+      console.log("Order not found:", orderId)
+      return NextResponse.json({ received: true })
+    }
+
+    // 🔒 Validar que la preference coincida
+    if (
+      order.mercadoPagoPreferenceId) {
+      throw new Error("Preference mismatch")
+    }
+
+    // 🔒 Validar monto
+    if (Number(payment.transaction_amount) !== Number(order.total)) {
+      throw new Error("Payment amount mismatch")
+    }
+
+    // =========================================================
+    // 🔥 PAGO APROBADO
+    // =========================================================
+    if (
+      payment.status === "approved" &&
+      payment.status_detail === "accredited"
+    ) {
+      await prisma.$transaction(async (tx) => {
+        const freshOrder = await tx.order.findUnique({
           where: { id: orderId },
           include: { items: true },
         })
 
-        if (!order) {
-          console.log("Order not found:", orderId)
-          return
+        if (!freshOrder) {
+          throw new Error("Order disappeared")
         }
 
-        // 🔒 Idempotencia → si ya está pagada, salir
-        if (order.status === "PAID") {
+        // 🔒 Idempotencia
+        if (freshOrder.status === "PAID") {
           console.log("Order already processed:", orderId)
           return
         }
 
-        // 🔒 Validar stock antes de descontar
-        for (const item of order.items) {
+        // 🔒 Validar stock
+        for (const item of freshOrder.items) {
           if (!item.variantId) continue
 
           const variant = await tx.productVariant.findUnique({
-            where: { id: item.variantId }
+            where: { id: item.variantId },
           })
 
           if (!variant) {
@@ -71,7 +101,7 @@ export async function POST(req: Request) {
         }
 
         // 🔥 Descontar stock
-        for (const item of order.items) {
+        for (const item of freshOrder.items) {
           if (!item.variantId) continue
 
           await tx.productVariant.update({
@@ -95,10 +125,32 @@ export async function POST(req: Request) {
       })
     }
 
+    // =========================================================
+    // ❌ PAGO RECHAZADO
+    // =========================================================
+    if (payment.status === "rejected") {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: "REJECTED" },
+      })
+    }
+
+    // =========================================================
+    // 🚫 PAGO CANCELADO
+    // =========================================================
+    if (payment.status === "cancelled") {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: "CANCELLED" },
+      })
+    }
 
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error("Webhook error:", error)
-    return NextResponse.json({ error: "Webhook error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Webhook error" },
+      { status: 500 }
+    )
   }
 }

@@ -1,9 +1,7 @@
-"use client"
-
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
-import BuyButton from "@/components/BuyButton"
 import Image from "next/image"
+import AddToCartButton from "@/components/AddToCartButton"
 
 type Props = {
   params: {
@@ -12,27 +10,45 @@ type Props = {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-  
   const productId = Number(params.id)
 
   if (isNaN(productId)) {
     notFound()
   }
 
-  const product = await prisma.product.findUnique({
+  const dbProduct = await prisma.product.findUnique({
     where: { id: productId },
+    include: { variants: true },
   })
+
+  if (!dbProduct) notFound()
+
+  const product = {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    brand: dbProduct.brand,
+    description: dbProduct.description,
+    notes: dbProduct.notes,
+    imageUrl: dbProduct.imageUrl,
+    variants: dbProduct.variants.map(v => ({
+      id: v.id,
+      sizeMl: v.sizeMl,
+      price: Number(v.price),
+      stock: v.stock,
+      sku: v.sku,
+    })),
+  }
 
   if (!product) {
     notFound()
   }
+  const variant = product.variants[0]
 
   return (
     <div className="min-h-screen bg-[#E0C89A] px-4 py-8">
       <div className="mx-auto max-w-4xl rounded-3xl bg-[#FDF9F2] p-6 shadow">
-
         <div className="grid gap-6 md:grid-cols-2">
-          
+
           {/* IMAGEN */}
           <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white">
             {product.imageUrl ? (
@@ -70,32 +86,30 @@ export default async function ProductDetailPage({ params }: Props) {
               </p>
             )}
 
-            <div className="flex items-center gap-4">
-              <span className="text-2xl font-bold text-[#C89A4A]">
-                ${Number(product.price).toFixed(2)} MXN
-              </span>
-
-              {product.stock > 0 ? (
-                <span className="text-sm text-green-700">
-                  En stock · {product.stock}
+            {variant && (
+              <div className="flex items-center gap-4">
+                <span className="text-2xl font-bold text-[#C89A4A]">
+                  ${Number(variant.price).toFixed(2)} MXN
                 </span>
-              ) : (
-                <span className="text-sm text-red-600">
-                  Sin stock
-                </span>
-              )}
-            </div>
 
-            {/* CTA */}
-            <button
-              disabled={product.stock <= 0}
-              className="w-full rounded-full bg-[#D4B063] px-4 py-2 font-medium disabled:opacity-50"
-            >
-              Agregar al carrito
-            </button>
+                {variant.stock > 0 ? (
+                  <span className="text-sm text-green-700">
+                    En stock · {variant.stock}
+                  </span>
+                ) : (
+                  <span className="text-sm text-red-600">
+                    Sin stock
+                  </span>
+                )}
+              </div>
+            )}
 
-            
-
+            {variant && (
+              <AddToCartButton
+                product={product}
+                variant={variant}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -19,7 +19,10 @@ export default function HomeClient({ products }: Props) {
   const addItem = useCartStore((state) => state.addItem)
 
   const handleAddToCart = (product: ProductDTO) => {
-    addItem(product)
+  const variant = product.variants[0]
+
+  if (!variant) return
+    addItem(product, variant)
   }
 
   const featured = products.slice(0, 5).map((p) => ({
@@ -83,72 +86,83 @@ export default function HomeClient({ products }: Props) {
             </p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
-                <article
-                  key={product.id}
-                  className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                >
-                  <div className="space-y-2">
-                    {product.imageUrl && (
-                      <div className="relative h-48 w-full overflow-hidden rounded-xl">
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                        />
-                      </div>
-                    )}
+              {products.map((product) => {
+                const variant = product.variants[0]
 
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
-                      {product.brand || "Marca"}
-                    </p>
-                    <Link href={`/products/${product.id}`} className="block">
-                      <h2 className="text-base font-semibold leading-snug">
-                        {product.name}
-                      </h2>
-                    </Link>
+                return (
+                  <article
+                    key={product.id}
+                    className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                  >
+                    <div className="space-y-2">
+                      {product.imageUrl && (
+                        <div className="relative h-48 w-full overflow-hidden rounded-xl">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                          />
+                        </div>
+                      )}
 
-                    <p className="text-xs text-zinc-600">
-                      {product.sizeMl} ml · {formatCurrency(Number(product.price))}
-                    </p>
-
-                    {product.notes && (
-                      <p className="mt-2 line-clamp-3 text-xs text-zinc-500">
-                        Notas: {product.notes}
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+                        {product.brand || "Marca"}
                       </p>
-                    )}
 
-                    <p
-                      className={`mt-1 text-xs font-medium ${
-                        product.stock > 0
-                          ? "text-emerald-600"
-                          : "text-red-500"
+                      <Link href={`/products/${product.id}`} className="block">
+                        <h2 className="text-base font-semibold leading-snug">
+                          {product.name}
+                        </h2>
+                      </Link>
+
+                      {variant && (
+                        <>
+                          <p className="text-xs text-zinc-600">
+                            {variant.sizeMl} ml ·{" "}
+                            {formatCurrency(variant.price)}
+                          </p>
+
+                          <p
+                            className={`mt-1 text-xs font-medium ${
+                              variant.stock > 0
+                                ? "text-emerald-600"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {variant.stock > 0
+                              ? `En stock: ${variant.stock}`
+                              : "Sin stock"}
+                          </p>
+                        </>
+                      )}
+
+                      {product.notes && (
+                        <p className="mt-2 line-clamp-3 text-xs text-zinc-500">
+                          Notas: {product.notes}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!variant || variant.stock <= 0}
+                      onClick={() => handleAddToCart(product)}
+                      className={`mt-4 h-9 rounded-full text-xs font-medium transition ${
+                        variant && variant.stock > 0
+                          ? "bg-black text-white hover:bg-zinc-800"
+                          : "bg-zinc-200 text-zinc-500 cursor-not-allowed"
                       }`}
                     >
-                      {product.stock > 0
-                        ? `En stock: ${product.stock}`
+                      {variant && variant.stock > 0
+                        ? "Agregar al carrito"
                         : "Sin stock"}
-                    </p>
-                  </div>
+                    </button>
+                  </article>
+                )
+              })}
 
-                  <button
-                    type="button"
-                    disabled={product.stock <= 0}
-                    onClick={() => handleAddToCart(product)}
-                    className={`mt-4 h-9 rounded-full text-xs font-medium transition ${
-                      product.stock > 0
-                        ? "bg-black text-white hover:bg-zinc-800"
-                        : "bg-zinc-200 text-zinc-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {product.stock > 0
-                      ? "Agregar al carrito"
-                      : "Sin stock"}
-                  </button>
-                </article>
-              ))}
             </div>
           )}
         </section>

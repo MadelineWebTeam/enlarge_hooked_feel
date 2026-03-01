@@ -124,6 +124,7 @@ enum OrderStatus {
   PENDING
   PAID
   CANCELLED
+  REJECTED
   REFUNDED
 }
 

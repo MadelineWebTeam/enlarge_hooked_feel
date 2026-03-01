@@ -125,7 +125,8 @@ export async function POST(req: Request) {
     const response = await preference.create({
       body: {
         items: validatedItems,
-        external_reference: String(order.id), // 🔥 CLAVE
+        external_reference: String(order.id), 
+        auto_return: "approved",
         back_urls: {
           success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
           failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
