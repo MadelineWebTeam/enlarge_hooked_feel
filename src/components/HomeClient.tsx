@@ -5,6 +5,8 @@ import Image from "next/image"
 import { useCartStore } from "@/store/cartStore"
 import HomeCarousel from "@/components/HomeCarousel"
 import type { ProductDTO } from "@/types/product"
+import ProductDetailClient from "@/components/ProductDetailClient"
+
 
 type Props = {
   products: ProductDTO[]
@@ -117,26 +119,7 @@ export default function HomeClient({ products }: Props) {
                         </h2>
                       </Link>
 
-                      {variant && (
-                        <>
-                          <p className="text-xs text-zinc-600">
-                            {variant.sizeMl} ml ·{" "}
-                            {formatCurrency(variant.price)}
-                          </p>
-
-                          <p
-                            className={`mt-1 text-xs font-medium ${
-                              variant.stock > 0
-                                ? "text-emerald-600"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {variant.stock > 0
-                              ? `En stock: ${variant.stock}`
-                              : "Sin stock"}
-                          </p>
-                        </>
-                      )}
+                      <ProductDetailClient product={product} />
 
                       {product.notes && (
                         <p className="mt-2 line-clamp-3 text-xs text-zinc-500">
@@ -144,21 +127,6 @@ export default function HomeClient({ products }: Props) {
                         </p>
                       )}
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={!variant || variant.stock <= 0}
-                      onClick={() => handleAddToCart(product)}
-                      className={`mt-4 h-9 rounded-full text-xs font-medium transition ${
-                        variant && variant.stock > 0
-                          ? "bg-black text-white hover:bg-zinc-800"
-                          : "bg-zinc-200 text-zinc-500 cursor-not-allowed"
-                      }`}
-                    >
-                      {variant && variant.stock > 0
-                        ? "Agregar al carrito"
-                        : "Sin stock"}
-                    </button>
                   </article>
                 )
               })}

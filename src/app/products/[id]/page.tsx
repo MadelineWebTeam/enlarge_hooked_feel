@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Image from "next/image"
-import AddToCartButton from "@/components/AddToCartButton"
+import ProductDetailClient from "@/components/ProductDetailClient"
 
 type Props = {
   params: {
@@ -12,9 +12,7 @@ type Props = {
 export default async function ProductDetailPage({ params }: Props) {
   const productId = Number(params.id)
 
-  if (isNaN(productId)) {
-    notFound()
-  }
+  if (isNaN(productId)) notFound()
 
   const dbProduct = await prisma.product.findUnique({
     where: { id: productId },
@@ -39,23 +37,19 @@ export default async function ProductDetailPage({ params }: Props) {
     })),
   }
 
-  if (!product) {
-    notFound()
-  }
-  const variant = product.variants[0]
-
   return (
     <div className="min-h-screen bg-[#E0C89A] px-4 py-8">
-      <div className="mx-auto max-w-4xl rounded-3xl bg-[#FDF9F2] p-6 shadow">
-        <div className="grid gap-6 md:grid-cols-2">
+      <div className="mx-auto max-w-5xl rounded-3xl bg-[#FDF9F2] p-8 shadow-lg">
+        <div className="grid gap-10 md:grid-cols-2">
 
-          {/* IMAGEN */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white">
+          {/* Imagen */}
+          <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white">
             {product.imageUrl ? (
               <Image
                 src={product.imageUrl}
                 alt={product.name}
                 fill
+                sizes="(max-width:768px) 100vw, 50vw"
                 className="object-contain"
               />
             ) : (
@@ -65,51 +59,46 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
           </div>
 
-          {/* INFO */}
-          <div className="space-y-4">
+          {/* Información del producto */}
+          <div className="space-y-6">
+
+            {/* Marca + Nombre */}
             <div>
-              <p className="text-xs uppercase tracking-widest text-zinc-500">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#8B6A3F]">
                 {product.brand}
               </p>
-              <h1 className="text-2xl font-semibold">{product.name}</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {product.name}
+              </h1>
             </div>
 
-            {product.notes && (
-              <p className="text-sm text-zinc-600">
-                Notas: {product.notes}
-              </p>
-            )}
-
+            {/* Descripción */}
             {product.description && (
-              <p className="text-sm text-zinc-600">
-                {product.description}
-              </p>
-            )}
-
-            {variant && (
-              <div className="flex items-center gap-4">
-                <span className="text-2xl font-bold text-[#C89A4A]">
-                  ${Number(variant.price).toFixed(2)} MXN
-                </span>
-
-                {variant.stock > 0 ? (
-                  <span className="text-sm text-green-700">
-                    En stock · {variant.stock}
-                  </span>
-                ) : (
-                  <span className="text-sm text-red-600">
-                    Sin stock
-                  </span>
-                )}
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                  Descripción
+                </h2>
+                <p className="text-sm leading-relaxed text-[#5B4A36]">
+                  {product.description}
+                </p>
               </div>
             )}
 
-            {variant && (
-              <AddToCartButton
-                product={product}
-                variant={variant}
-              />
+            {/* Notas */}
+            {product.notes && (
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                  Notas Olfativas
+                </h2>
+                <p className="text-sm text-[#6E5A45]">
+                  {product.notes}
+                </p>
+              </div>
             )}
+
+            {/* Parte interactiva */}
+            <ProductDetailClient product={product} />
+
           </div>
         </div>
       </div>
