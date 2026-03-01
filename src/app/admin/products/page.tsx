@@ -15,7 +15,7 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="p-6">
-      <Link href="/new" className="relative inline-flex items-center">
+      <Link href="./new" className="relative inline-flex items-center">
         Agregar nuevo
       </Link>
 
