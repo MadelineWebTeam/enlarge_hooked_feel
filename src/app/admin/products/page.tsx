@@ -15,6 +15,10 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="p-6">
+      <Link href="/new" className="relative inline-flex items-center">
+        Agregar nuevo
+      </Link>
+
       <h1 className="text-2xl font-bold mb-6">Productos</h1>
 
       <table className="w-full border-collapse">
@@ -45,9 +49,7 @@ export default async function AdminProductsPage() {
 
             return (
               <tr key={product.id} className="border-b">
-              <Link href="/new" className="relative inline-flex items-center">
-                Agregar nuevo
-              </Link>
+              
                 <td className="py-3">
                   {product.brand} {product.name}
                 </td>
