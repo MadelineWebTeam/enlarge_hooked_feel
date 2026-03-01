@@ -45,6 +45,9 @@ export default async function AdminProductsPage() {
 
             return (
               <tr key={product.id} className="border-b">
+              <Link href="/new" className="relative inline-flex items-center">
+                Agregar nuevo
+              </Link>
                 <td className="py-3">
                   {product.brand} {product.name}
                 </td>
