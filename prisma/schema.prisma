@@ -41,6 +41,7 @@ model Order {
 
   mercadoPagoPreferenceId String?
   mercadoPagoPaymentId    String? @unique
+  paidAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
