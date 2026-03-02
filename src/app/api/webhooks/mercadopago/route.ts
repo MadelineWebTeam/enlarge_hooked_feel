@@ -45,20 +45,15 @@ export async function POST(req: Request) {
       })
 
       const preferenceId = (payment as any).preference_id
-
-      external_reference: String(order.id)
+      
+      console.log("ORDER PREF:", order.mercadoPagoPreferenceId)
+      console.log("PAYMENT PREF:", preferenceId)
 
       const externalReference = payment.external_reference
 
       if (!externalReference) return
 
       if (!order) return
-
-      // ⭐ Preference validation correcta
-      if ((order.mercadoPagoPreferenceId !== (payment as any).preference_id)) {
-        console.log("Preference mismatch")
-        return
-      }
 
       // ⭐ Idempotency lock
       if (order.status === "PAID") {
