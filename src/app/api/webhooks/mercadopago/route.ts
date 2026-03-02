@@ -46,6 +46,12 @@ export async function POST(req: Request) {
 
       const preferenceId = (payment as any).preference_id
 
+      external_reference: String(order.id)
+
+      const externalReference = payment.external_reference
+
+      if (!externalReference) return
+
       if (!order) return
 
       // ⭐ Preference validation correcta
