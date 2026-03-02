@@ -16,8 +16,7 @@ export async function POST(req: Request) {
     const requestId = req.headers.get("x-request-id")
 
     if (!signature || !requestId) {
-      return NextResponse.json({ received: true })
-    }
+      return NextResponse.json({ received: true })  }
 
     if (body.type !== "payment") {
       return NextResponse.json({ received: true })
