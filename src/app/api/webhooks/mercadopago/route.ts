@@ -48,18 +48,6 @@ export async function POST(req: Request) {
 
       if (!order) return
 
-      console.log("ORDER PREF:", order.mercadoPagoPreferenceId)
-      console.log("PAYMENT PREF:", preferenceId)
-
-      if (
-        order.mercadoPagoPreferenceId &&
-        preferenceId &&
-        order.mercadoPagoPreferenceId !== preferenceId
-      ) {
-        console.log("Preference mismatch")
-        return
-}
-
       // ⭐ Preference validation correcta
       if ((order.mercadoPagoPreferenceId !== (payment as any).preference_id)) {
         console.log("Preference mismatch")
