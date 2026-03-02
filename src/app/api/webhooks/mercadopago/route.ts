@@ -12,6 +12,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
 
+    const signature = req.headers.get("x-signature")
+    const requestId = req.headers.get("x-request-id")
+
+    if (!signature || !requestId) {
+      return NextResponse.json({ received: true })
+    }
+
     if (body.type !== "payment") {
       return NextResponse.json({ received: true })
     }
