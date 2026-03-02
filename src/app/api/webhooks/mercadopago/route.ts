@@ -48,6 +48,9 @@ export async function POST(req: Request) {
 
       if (!order) return
 
+      console.log("ORDER PREF:", order.mercadoPagoPreferenceId)
+      console.log("PAYMENT PREF:", preferenceId)
+
       if (
         order.mercadoPagoPreferenceId &&
         preferenceId &&
