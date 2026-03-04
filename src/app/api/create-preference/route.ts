@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-
+    
     // Customer validation
     if (
       !customer?.fullName ||
@@ -93,6 +93,8 @@ export async function POST(req: Request) {
         currency_id: "MXN",
         id: String(variant.id),
       })
+      console.log("SUBTOTAL FINAL:", subtotal)
+      console.log("ITEMS ENVIADOS A MP:", validatedItems)
     }
 
     /**
