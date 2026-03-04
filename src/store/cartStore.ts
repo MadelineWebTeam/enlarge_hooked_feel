@@ -1,26 +1,17 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { ProductDTO, ProductVariantDTO } from "@/types/product"
 
 export type CartItem = {
   variantId: number
-  productId: number
-  name: string
-  brand: string
-  sizeMl: number
-  price: number
-  imageUrl?: string | null
   quantity: number
 }
 
 type CartState = {
   items: CartItem[]
-  addItem: (product: ProductDTO, variant: ProductVariantDTO) => void
+  addItem: (variantId: number) => void
   removeItem: (variantId: number) => void
   updateQuantity: (variantId: number, quantity: number) => void
   clearCart: () => void
-  getTotalItems: () => number
-  getSubtotal: () => number
 }
 
 export const useCartStore = create<CartState>()(
@@ -28,44 +19,28 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, variant) => {
+      addItem: (variantId) => {
         const items = get().items
-        const existing = items.find(
-          (i) => i.variantId === variant.id
-        )
+        const existing = items.find(i => i.variantId === variantId)
 
         if (existing) {
           set({
-            items: items.map((i) =>
-              i.variantId === variant.id
+            items: items.map(i =>
+              i.variantId === variantId
                 ? { ...i, quantity: i.quantity + 1 }
                 : i
-            ),
+            )
           })
         } else {
           set({
-            items: [
-              ...items,
-              {
-                variantId: variant.id,
-                productId: product.id,
-                name: product.name,
-                brand: product.brand,
-                sizeMl: variant.sizeMl,
-                price: variant.price,
-                imageUrl: product.imageUrl,
-                quantity: 1,
-              },
-            ],
+            items: [...items, { variantId, quantity: 1 }]
           })
         }
       },
 
       removeItem: (variantId) => {
         set({
-          items: get().items.filter(
-            (i) => i.variantId !== variantId
-          ),
+          items: get().items.filter(i => i.variantId !== variantId)
         })
       },
 
@@ -76,30 +51,16 @@ export const useCartStore = create<CartState>()(
         }
 
         set({
-          items: get().items.map((i) =>
+          items: get().items.map(i =>
             i.variantId === variantId
               ? { ...i, quantity }
               : i
-          ),
+          )
         })
       },
 
-      clearCart: () => set({ items: [] }),
-
-      getTotalItems: () =>
-        get().items.reduce(
-          (sum, i) => sum + i.quantity,
-          0
-        ),
-
-      getSubtotal: () =>
-        get().items.reduce(
-          (sum, i) => sum + i.price * i.quantity,
-          0
-        ),
+      clearCart: () => set({ items: [] })
     }),
-    {
-      name: "madeleine-cart",
-    }
+    { name: "madeleine-cart" }
   )
 )
