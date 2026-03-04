@@ -24,7 +24,7 @@ export default function HomeClient({ products }: Props) {
   const variant = product.variants[0]
 
   if (!variant) return
-    addItem(product, variant)
+    addItem(variant.id)
   }
 
   const featured = products.slice(0, 5).map((p) => ({
