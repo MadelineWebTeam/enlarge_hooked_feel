@@ -8,6 +8,7 @@ const client = new MercadoPagoConfig({
 
 export async function POST(req: Request) {
   console.log("🔥 WEBHOOK RECIBIDO 🔥")
+  
 
   try {
     const body = await req.json()
@@ -39,6 +40,11 @@ export async function POST(req: Request) {
     if (!externalReference) return NextResponse.json({ received: true })
 
     const orderId = Number(externalReference)
+
+    console.log("🔥 WEBHOOK BODY:", body)
+    console.log("🔥 PAYMENT:", payment)
+    console.log("🔥 STATUS:", payment?.status)
+    console.log("🔥 EXTERNAL REF:", payment?.external_reference)
 
     // =====================================================
     // 🔒 TRANSACTIONAL PROCESSING (ULTRA SAFE ZONE)
