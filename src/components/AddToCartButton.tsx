@@ -13,7 +13,7 @@ export default function AddToCartButton({ product, variant }: Props) {
 
   return (
     <button
-      onClick={() => addItem(product, variant)}
+      onClick={() => addItem(variant.id)}
       disabled={variant.stock <= 0}
       className="mt-4 w-full rounded-full bg-[#D4B063] px-4 py-3 font-medium transition hover:opacity-90 disabled:opacity-50"
     >
