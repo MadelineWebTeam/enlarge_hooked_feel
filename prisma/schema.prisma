@@ -22,31 +22,25 @@ model User {
 }
 
 model Order {
-  id     Int         @id @default(autoincrement())
-  status OrderStatus @default(PENDING)
-
-  fullName String
-  email    String
-  phone    String?
-
-  addressLine1 String
-  addressLine2 String?
-  city         String
-  state        String
-  postalCode   String
-  country      String
-
-  subtotal Decimal
-  total    Decimal
-
+  id                      Int         @id @default(autoincrement())
+  status                  OrderStatus @default(PENDING)
+  fullName                String
+  email                   String
+  phone                   String?
+  addressLine1            String
+  addressLine2            String?
+  city                    String
+  state                   String
+  postalCode              String
+  country                 String
+  subtotal                Decimal
+  total                   Decimal
   mercadoPagoPreferenceId String?
-  mercadoPagoPaymentId    String? @unique
-  paidAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  items OrderItem[]
+  mercadoPagoPaymentId    String?     @unique
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  paidAt                  DateTime?
+  items                   OrderItem[]
 }
 
 model OrderItem {
@@ -54,7 +48,6 @@ model OrderItem {
   orderId   Int
   productId Int?
   variantId Int?
-
   name      String
   price     Decimal
   quantity  Int
@@ -112,21 +105,21 @@ model Product {
 
 model ProductVariant {
   id         Int         @id @default(autoincrement())
-  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId  Int
   sizeMl     Int
   price      Decimal
   stock      Int
   sku        String      @unique
   orderItems OrderItem[]
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 enum OrderStatus {
   PENDING
   PAID
   CANCELLED
-  REJECTED
   REFUNDED
+  REJECTED
 }
 
 enum Role {
