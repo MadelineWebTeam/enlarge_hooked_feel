@@ -29,7 +29,6 @@ export default function AuthForm() {
       return
     }
 
-    // Auto login después de registrar
     await signIn("credentials", {
       email,
       password,
@@ -56,78 +55,113 @@ export default function AuthForm() {
     window.location.href = "/"
   }
 
+  const inputClass =
+    "w-full rounded-xl border border-[#E4D4B4] bg-white px-4 py-2.5 text-sm text-[#2B2219] placeholder:text-[#8B6A3F] outline-none focus:border-[#D4B063] transition"
+
   return (
-    <div className="w-full max-w-md border p-6 rounded space-y-4">
-      <div className="flex gap-2">
+    <div className="w-full max-w-md rounded-3xl bg-[#FDF9F2] p-7 shadow-[0_12px_32px_rgba(58,33,20,0.15)] space-y-5">
+
+      {/* Header */}
+      <div className="space-y-1">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#8B6A3F]">
+          Madeline Scent
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-[#2B2219]">
+          {mode === "login" ? "Bienvenida de vuelta" : "Crea tu cuenta"}
+        </h1>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 rounded-full border border-[#E4D4B4] bg-white p-1">
         <button
-          className={`flex-1 p-2 ${
-            mode === "login" ? "bg-black text-white" : "border"
-          }`}
           onClick={() => setMode("login")}
+          className={`flex-1 rounded-full py-2 text-xs font-medium transition ${
+            mode === "login"
+              ? "bg-[#D4B063] text-[#2B2219]"
+              : "text-[#5B4A36] hover:text-[#2B2219]"
+          }`}
         >
           Iniciar sesión
         </button>
         <button
-          className={`flex-1 p-2 ${
-            mode === "register" ? "bg-black text-white" : "border"
-          }`}
           onClick={() => setMode("register")}
+          className={`flex-1 rounded-full py-2 text-xs font-medium transition ${
+            mode === "register"
+              ? "bg-[#D4B063] text-[#2B2219]"
+              : "text-[#5B4A36] hover:text-[#2B2219]"
+          }`}
         >
           Crear cuenta
         </button>
       </div>
 
-      {mode === "register" && (
+      {/* Campos */}
+      <div className="space-y-3">
+        {mode === "register" && (
+          <input
+            placeholder="Nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+          />
+        )}
+
         <input
-          placeholder="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-2"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={inputClass}
         />
+
+        <input
+          placeholder="Contraseña"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">
+          {error}
+        </p>
       )}
 
-      <input
-        placeholder="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full border p-2"
-      />
-
-      <input
-        placeholder="Contraseña"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full border p-2"
-      />
-
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-
+      {/* Botón principal */}
       {mode === "login" ? (
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-black text-white p-2"
+          className="w-full rounded-full bg-[#D4B063] py-2.5 text-sm font-medium text-[#2B2219] transition hover:bg-[#C89A4A] disabled:opacity-60"
         >
-          Iniciar sesión
+          {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
       ) : (
         <button
           onClick={handleRegister}
           disabled={loading}
-          className="w-full bg-black text-white p-2"
+          className="w-full rounded-full bg-[#D4B063] py-2.5 text-sm font-medium text-[#2B2219] transition hover:bg-[#C89A4A] disabled:opacity-60"
         >
-          Crear cuenta
+          {loading ? "Creando cuenta..." : "Crear cuenta"}
         </button>
       )}
 
-      <hr />
-      <button 
-        onClick={() => signIn("github", { callbackUrl: "/" } )} 
-        className="w-full border p-2">
-            Continuar con GitHub
-        </button>
+      {/* Divisor */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 border-t border-[#E4D4B4]" />
+        <span className="text-xs text-[#8B6A3F]">o continúa con</span>
+        <div className="flex-1 border-t border-[#E4D4B4]" />
+      </div>
+
+      {/* GitHub */}
+      <button
+        onClick={() => signIn("github", { callbackUrl: "/" })}
+        className="w-full rounded-full border border-[#E4D4B4] bg-white py-2.5 text-sm font-medium text-[#2B2219] transition hover:bg-[#FDF9F2]"
+      >
+        Continuar con GitHub
+      </button>
     </div>
   )
 }
